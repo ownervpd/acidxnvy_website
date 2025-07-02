@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valo Paradise - Verifizierung</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+    <div class="container" id="verification-container">
+        <img src="https://i.imgur.com/EgXmQob.png" alt="Server Logo" class="logo">
+        <h1>Verifizierung erforderlich</h1>
+        <p>Um unsere Community zu schützen, bitten wir dich, zu bestätigen, dass du ein Mensch bist. Bitte löse das CAPTCHA unten, um vollen Zugriff auf den Server zu erhalten.</p>
+        
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAABjPGcTsaNK5ypZ6" data-callback="onCaptchaSuccess"></div>
+
+        <p class="footer">Du wirst nach Erfolg automatisch freigeschaltet.</p>
+    </div>
+
+    <script>
+        // Diese Funktion wird von Cloudflare automatisch aufgerufen, wenn das CAPTCHA erfolgreich ist.
+        function onCaptchaSuccess(token) {
+            // Zeige eine Lade-Animation, während das Backend kontaktiert wird
+            const container = document.getElementById('verification-container');
+            container.innerHTML = '<h1>Verbindung zum Bot wird hergestellt...</h1><div class="loader"></div>';
+
+            // HINWEIS: Dieser Teil benötigt das Backend, das wir als nächstes bauen müssten.
+            // Es sendet den Token an unseren Webserver, der dann den Bot kontaktiert.
+            /*
+            fetch('/verify-captcha', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ captchaToken: token, userToken: new URLSearchParams(window.location.search).get('token') })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    container.innerHTML = '<h1>✅ Verifizierung erfolgreich!</h1><p>Du kannst dieses Fenster jetzt schließen und zum Discord-Server zurückkehren.</p>';
+                } else {
+                    container.innerHTML = '<h1>❌ Fehler!</h1><p>Die Verifizierung ist fehlgeschlagen. Bitte versuche es erneut oder kontaktiere einen Admin.</p>';
+                }
+            });
+            */
+           // Temporäre Erfolgs-Anzeige für die Vorschau
+           setTimeout(() => {
+                container.innerHTML = '<h1>✅ Verifizierung erfolgreich!</h1><p>Du kannst dieses Fenster jetzt schließen und zum Discord-Server zurückkehren.</p>';
+           }, 2000);
+        }
+    </script>
+</body>
+</html>
