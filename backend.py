@@ -1,27 +1,32 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 import os
 import json
 
-# Diese Variablen MÜSSEN auf Render unter "Environment" gesetzt werden!
+# Lade die Konfiguration aus den Environment Variables auf Render
 CLOUDFLARE_SECRET_KEY = os.getenv("CLOUDFLARE_SECRET_KEY")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GUILD_ID = os.getenv("GUILD_ID")
 UNVERIFIED_ROLE_ID = os.getenv("UNVERIFIED_ROLE_ID")
 VERIFIED_ROLE_ID = os.getenv("VERIFIED_ROLE_ID")
-VERIFICATION_TOKENS_FILE = 'verification_tokens.json' # Der Bot und das Backend müssen auf diese Datei zugreifen können
+FRONTEND_URL = os.getenv("FRONTEND_URL") # z.B. https://incomparable-faun-4619e2.netlify.app
 
 app = Flask(__name__)
 
+# Konfiguriere CORS, um Anfragen NUR von deiner Webseite zu erlauben
+CORS(app, resources={r"/verify": {"origins": FRONTEND_URL}})
+
+# Helfer-Funktionen für die Token-Datei (angenommen, sie liegt im selben Verzeichnis)
 def load_tokens():
-    if os.path.exists(VERIFICATION_TOKENS_FILE):
-        with open(VERIFICATION_TOKENS_FILE, 'r') as f:
+    if os.path.exists('verification_tokens.json'):
+        with open('verification_tokens.json', 'r') as f:
             try: return json.load(f)
             except json.JSONDecodeError: return {}
     return {}
 
 def save_tokens(data):
-    with open(VERIFICATION_TOKENS_FILE, 'w') as f:
+    with open('verification_tokens.json', 'w') as f:
         json.dump(data, f, indent=4)
 
 @app.route('/verify', methods=['POST'])
@@ -48,12 +53,13 @@ def verify_captcha():
     # 3. Rollen des Users auf Discord ändern
     discord_api_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}"
     headers = {"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/json"}
-    json_payload = {"roles": [VERIFIED_ROLE_ID]} # Ersetzt alle Rollen durch die eine verifizierte Rolle
+    # WICHTIG: Diese Payload ersetzt ALLE Rollen des Users.
+    # Wenn der User andere Rollen behalten soll, muss die Logik angepasst werden.
+    json_payload = {"roles": [VERIFIED_ROLE_ID]} 
     
     update_res = requests.patch(discord_api_url, headers=headers, json=json_payload)
 
     if update_res.status_code == 204:
-        # Token nach erfolgreicher Verifizierung löschen
         del tokens_data[user_token]
         save_tokens(tokens_data)
         return jsonify({'success': True})
