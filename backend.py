@@ -10,18 +10,17 @@ load_dotenv()
 CLOUDFLARE_SECRET_KEY = os.getenv("CLOUDFLARE_SECRET_KEY")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GUILD_ID = os.getenv("GUILD_ID")
-UNVERIFIED_ROLE_ID = os.getenv("UNVERIFIED_ROLE_ID")
 VERIFIED_ROLE_ID = os.getenv("VERIFIED_ROLE_ID")
-SECRET_KEY = os.getenv("SECRET_KEY") # Der geheime Schlüssel zur Entschlüsselung
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Prüfe, ob alle notwendigen Schlüssel vorhanden sind
-if not all([CLOUDFLARE_SECRET_KEY, BOT_TOKEN, GUILD_ID, UNVERIFIED_ROLE_ID, VERIFIED_ROLE_ID, SECRET_KEY]):
+if not all([CLOUDFLARE_SECRET_KEY, BOT_TOKEN, GUILD_ID, VERIFIED_ROLE_ID, SECRET_KEY]):
     raise ValueError("Eine oder mehrere notwendige Environment Variables fehlen!")
 
 # Initialisiere das Entschlüsselungs-Tool
 fernet = Fernet(SECRET_KEY.encode())
 app = Flask(__name__)
-CORS(app) # Erlaube Anfragen von überall, um CORS-Probleme final auszuschließen
+CORS(app) # Erlaube Anfragen von überall
 
 @app.route('/verify', methods=['POST'])
 def verify_captcha():
@@ -47,22 +46,17 @@ def verify_captcha():
         user_id = decrypted_user_id_bytes.decode()
     except Exception as e:
         print(f"Token Entschlüsselungs-Fehler: {e}")
-        return jsonify({'success': False, 'error': 'Ungültiger oder abgelaufener Verifizierungs-Token'}), 400
+        return jsonify({'success': False, 'error': 'Ungültiger Verifizierungs-Token'}), 400
 
-    # 3. Rollen des Users auf Discord ändern
-    discord_api_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}"
-    headers = {"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/json"}
+    # 3. Rolle auf Discord hinzufügen
+    # Diese Methode fügt nur die eine Rolle hinzu, ohne andere zu entfernen
+    add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{VERIFIED_ROLE_ID}"
+    headers = {"Authorization": f"Bot {BOT_TOKEN}"}
     
-    # Payload, der die unverifizierte Rolle entfernt und die verifizierte hinzufügt
-    # HINWEIS: Dies setzt voraus, dass der User nur die eine unverifizierte Rolle hat.
-    json_payload = {
-        "roles": [VERIFIED_ROLE_ID]
-    }
-    
-    update_res = requests.patch(discord_api_url, headers=headers, json=json_payload)
+    update_res = requests.put(add_role_url, headers=headers)
 
-    # Prüfe auf Erfolg (200 OK oder 204 No Content)
-    if update_res.status_code in [200, 204]:
+    # Prüfe auf Erfolg (204 No Content ist die Erfolgsantwort von Discord)
+    if update_res.status_code == 204:
         print(f"Benutzer {user_id} erfolgreich verifiziert.")
         return jsonify({'success': True})
     else:
