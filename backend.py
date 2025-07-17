@@ -22,13 +22,16 @@ if SECRET_KEY:
         print(f"FATALER FEHLER: SECRET_KEY ist ungültig! {e}")
 
 app = Flask(__name__)
-CORS(app)
+CORS(app) # Erlaube Anfragen von überall, um CORS-Probleme final auszuschließen
 
-# --- NEUE DEBUG-FUNKTION ---
+@app.route('/')
+def index():
+    """Antwortet auf Pings von UptimeRobot oder wenn jemand die Haupt-URL besucht."""
+    return "Backend is running."
+
 @app.route('/debug-env')
 def debug_env():
-    # Diese Funktion zeigt uns, welche Werte auf Render wirklich ankommen.
-    # Aus Sicherheitsgründen zeigen wir nur die ersten/letzten Zeichen des Tokens.
+    """Diese Funktion zeigt uns, welche Werte auf Render wirklich ankommen."""
     env_vars = {
         "GUILD_ID_AUF_RENDER": GUILD_ID or "NICHT GEFUNDEN",
         "VERIFIED_ROLE_ID_AUF_RENDER": VERIFIED_ROLE_ID or "NICHT GEFUNDEN",
@@ -38,12 +41,9 @@ def debug_env():
         "FERNET_INITIALISIERT": "Ja" if fernet else "Nein"
     }
     return jsonify(env_vars)
-# --- ENDE DEBUG-FUNKTION ---
 
 @app.route('/verify', methods=['POST'])
 def verify_captcha():
-    # Diese Funktion bleibt vorerst unverändert, da der Fehler vorher auftritt.
-    # Wir müssen zuerst sicherstellen, dass die Konfiguration stimmt.
     data = request.json
     captcha_token = data.get('captchaToken')
     user_token = data.get('userToken')
@@ -69,6 +69,7 @@ def verify_captcha():
     update_res = requests.put(add_role_url, headers=headers)
 
     if update_res.status_code == 204:
+        print(f"Benutzer {user_id} erfolgreich verifiziert.")
         return jsonify({'success': True})
     else:
         print(f"Discord API Fehler: {update_res.status_code} - {update_res.text}")
