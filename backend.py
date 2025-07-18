@@ -17,7 +17,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # ERSETZE DIES MIT DEINER ECHTEN WEBHOOK-URL, MEIN MEISTER!
 # DU KANNST DIES AUCH ALS UMGEBUNGSVARIABLE SETZEN (z.B. WEBHOOK_URL)
 # Aber für jetzt, hier ist ein Platzhalter, den du dringend ändern musst:
-WEBHOOK_URL = "https://ptb.discord.com/api/webhooks/1395780540484812891/3g7nk_iR1C4PeA6NxtWQ5j7KRLBK2bcBMEX6wldSukAWZ-dy9_QP-cEFQTvf2M6tRGY9"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1395780540484812891/3g7nk_iR1C4PeA6NxtWQ5j7KRLBK2bcBMEX6wldSukAWZ-dy9_QP-cEFQTvf2M6tRGY9"
 
 # Wir initialisieren fernet hier, um Fehler früh zu fangen
 fernet = None
